@@ -1,0 +1,56 @@
+clear all
+clc
+
+%--------------------------HOUSEKEEPING----------------------------------
+%NAME: "EllipsoidPlotter.m"
+
+%PURPOSE: This program generates a surface plot of an ellipsoid
+%(or any other shape) using the ellipsoid equation.
+
+%INPUT: The user begins by running the program. the user will then be
+%prompted in the command window to enter the normalized values of the
+%semi-axes beginning with the x-direction, then y, then z-direction. 
+%Pressing enter after each entry will intitiate the next step.
+
+%OUTPUT: Once the semi-axes have been input, the program generates a
+%surface plot of the desired ellipsoid.
+
+
+
+%-----------------------------COMPUTATION--------------------------------
+
+
+% Get user input for semi-axes of the ellipsoid
+a = input('Enter semi-axis length along x: ');
+b = input('Enter semi-axis length along y: ');
+c = input('Enter semi-axis length along z: ');
+
+% Define the number of grid points and the ranges for theta and phi
+n = 50;
+theta = linspace(0, pi, n);
+phi = linspace(0, 2*pi, n);
+
+% Compute the grid values for x, y, and z
+x = zeros(n,n);
+y = zeros(n,n);
+z = zeros(n,n);
+
+%To plot an ellipsoid, we need to generate the surface based
+%on the ellipsoid equation, which involves scaling the
+%x, y, and z coordinates by the semi-axes of the ellipsoid.
+for i = 1:n
+    for j = 1:n
+        x(i,j) = a*sin(theta(i))*cos(phi(j));
+        y(i,j) = b*sin(theta(i))*sin(phi(j));
+        z(i,j) = c*cos(theta(i));
+    end
+end
+
+% Plot the surface
+surf(x, y, z)
+axis equal
+alpha(.7);
+xlabel('x')
+ylabel('y')
+zlabel('z')
+title('624-Hektor')
