@@ -1,0 +1,54 @@
+clc;
+clear all;
+
+% Define meshgrid
+x = -2.4:0.05:2.4;
+y = x;
+[X,Y] = meshgrid(x,y);
+
+% Pre-compute the effective potential
+Eff_Potential = EffPotential(X,Y);
+
+% Set colormap
+map = ones(2, 3) * 0.6;
+colormap(map);
+
+% Levels for contour plots
+levels = 2.15:0.0366666667:2.26;
+
+% Constants for plot
+u = 0.992;
+v = 0.996;
+
+% Generate contour plots
+for j = 1:length(levels)
+    subplot(3,3,j);
+    contourf(X,Y,Eff_Potential,levels(j)+[0 -0.0001]);
+    hold on;
+    plot(0,0,'ko','MarkerSize',10,'MarkerFaceColor','#77AC30');
+    title(sprintf('H = %.2f', 2*levels(j)));
+    axis equal;
+    axis square;
+    hold off;
+end
+
+% Effective potential function
+function Eff_Potential = EffPotential(X, Y)
+    % Constants
+    m1 = 0.98784635699194478508644579051179;
+    m2 = 0.012153643008053502741483420379609;
+    mu = m2 / (m1 + m2);
+    u = 0.992;
+    v = 0.996;
+    w = 1 + u - v^2;
+    
+    % Pre-compute expressions used in the potential calculation
+    Delta = (mu*u^3 + (1-mu)*v^3)^2 - mu*(1-mu)*u*v*(-u^4 - v^4 + 2*u^2 + 2*v^2 + 2*u^2*v^2 - 1);
+    Lambda1 = 0.5*(2 - (2*(1-mu))/u^5 - (2*mu)/v^5 + (3*(1-mu))/u^3 + (3*mu)/v^3 - 3/(u^3*v^3)*sqrt(Delta));
+    Lambda2 = 0.5*(2 - (2*(1-mu))/u^5 - (2*mu)/v^5 + (3*(1-mu))/u^3 + (3*mu)/v^3 + 3/(u^3*v^3)*sqrt(Delta));
+    
+    r = sqrt(X.^2 + Y.^2);
+    
+    % Hill's Effective Potential formula
+    Eff_Potential = -((0.5)*(Lambda2.*X.^2 + Lambda1.*Y.^2) - (1-mu)/u^3 - mu/v^3 + 1./r);
+end
