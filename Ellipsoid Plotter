@@ -1,0 +1,29 @@
+% Ellipsoid parameters
+a = 415;
+b = 415;
+c = 100;
+
+% Number of points on the ellipsoid surface
+numPoints = 100;
+
+% Generate points on a unit sphere
+theta = linspace(0, 2*pi, numPoints);
+phi = linspace(0, pi, numPoints);
+[theta, phi] = meshgrid(theta, phi);
+x = cos(theta) .* sin(phi);
+y = sin(theta) .* sin(phi);
+z = cos(phi);
+
+% Scale points to match ellipsoid semi-axis lengths
+x = a * x;
+y = b * y;
+z = c * z;
+
+% Plot the ellipsoid
+figure;
+surf(x, y, z, 'FaceAlpha', 0.5);
+axis equal;
+title('Ellipsoid');
+xlabel('X');
+ylabel('Y');
+zlabel('Z');
