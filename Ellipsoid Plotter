@@ -1,0 +1,37 @@
+clear all
+clc
+
+%-------------------------HOUSEKEEPING---------------------------------
+
+%NAME: "Singularity.m"
+
+%INPUT:
+%The user begins by running the program. In the command window the user
+%will be prompted to input the radius and length of the desired cylinder.
+%Press enter after each entry.
+
+%OUTPUT:
+%Once the parameters have been input, the program generates a surface plot
+%of the cylinder
+
+
+%-----------------------------COMPUTATION---------------------------------
+
+% Ask user for input
+radius = input('Enter the radius of the cylinder: ');
+height = input('Enter the height of the cylinder: ');
+
+% Generate the cylinder meshgrid
+theta = linspace(0, 2*pi, 50);
+z = linspace(0, height, 50);
+[theta, z] = meshgrid(theta, z);
+x = radius*cos(theta);
+y = radius*sin(theta);
+
+% Plot the cylinder
+surf(x, y, z);
+axis equal;
+xlabel('x');
+ylabel('y');
+zlabel('z');
+title('Cylinder Plot');
