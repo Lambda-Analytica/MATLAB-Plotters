@@ -1,56 +1,137 @@
-clear all
-clc
+clear
+format long
 
-%--------------------------HOUSEKEEPING----------------------------------
-%NAME: "EllipsoidPlotter.m"
+%----------------------------HOUSEKEEPING---------------------------------
 
-%PURPOSE: This program generates a surface plot of an ellipsoid
-%(or any other shape) using the ellipsoid equation.
+%NAME: 'EnergySurface.m'
 
-%INPUT: The user begins by running the program. the user will then be
-%prompted in the command window to enter the normalized values of the
-%semi-axes beginning with the x-direction, then y, then z-direction. 
-%Pressing enter after each entry will intitiate the next step.
+%PURPOSE: 
+%This program takes the Hamiltonian, transforms it to spherical 
+%coordinates, calculates the potential energy at each grid point, and then 
+%plots the result as a surface.
 
-%OUTPUT: Once the semi-axes have been input, the program generates a
-%surface plot of the desired ellipsoid.
+%INPUT: 
+%The user must input the Hamiltonian and all of the relevant parameters
+%pertaining to the Hamiltonian. Then the user must input the equilibria
+%points as found by the program "Equilibria."
+
+%OUTPUT: 
+%The program then generates a 3-dimensional surface plot of the potential
+%energy of the system and includes the locations of the x,y,z equilibria.
+
+
+%----------------------------PARAMETERS----------------------------------
+m1= 0.9990467; %mass 1
+m2= 9.533386e-4; %mass 2
+m3= 3.97308e-12; %mass 3
+mu = (m2)/(m1 + m2); %mass ratio
+
+R1 = 8.936416e-4; %m1 average radius
+R2 = 8.980218e-5; %m2 average radius
+R3 = 8.360e-6; %m3 average radius
+
+C1_20 = -5.00e-6; %m1 oblateness coefficient
+C2_20 = -14736e-6; %m2 oblateness coefficient
+C3_20 = -1000;  %%m3 oblateness coefficient
+
+r13 = 1.0000000349428015411490378028248; %m1 to m3 distance
+r23 = 1.0000000348853801401816099314601; %m1 to m3 distance
+
+Lambda1 = 0.0021443606744026750153738840819666;
+Lambda2 = 2.9978556742683293702377988574249;
+
+c1 = ((m3^-(2/3))*(R1^2)*(C1_20))/2; %radius scaling for m1
+c2 = ((m3^-(2/3))*(R2^2)*(C2_20))/2;%radius scaling for m2
+c3 = ((m3^-(2/3))*(R3^2)*(C3_20))/2;%radius scaling for m3
+                                    %Case 1: c3 = 0
+                                    %Case 2: c3 = -1.123039227
+                                    %Case 3: =4.162436295
+w = 1 + r13^2 - r23^2;
+
+% Define symbolic variables and Hamiltonian
+syms x y z xdot ydot zdot
+H = (1/2)*((xdot-y)^2 + (ydot+x)^2 + zdot^2) ...
+    + y*(xdot-y) - x*(ydot+x) ...
+    - ((((x^2)/2)*(((3*w^2)/4 - 1)/r13^5 + mu*((3*(2-w)^2)/4 - 1)/r23^5)) ...
+    + ((y^2)/2)*((1-mu)*((3*(4*r13^2 - w^2))/4 - 1)/r13^5 + mu*((3*(4*r13^2 - w^2))/4 - 1)/r23^5) ...
+    + (x*y/2)*((1-mu)*(6*w*sqrt(4*r13^2 - w^2)/4)/r13^5 - (mu*6*(2-w)*sqrt(4*r13^2 - w^2)/4)/r23^5) ...
+    - ((x^2)/2)*((1-mu)*c1/r13^3 + mu/r23^3) ...
+    + (c1*(1-mu)/r13^3)*(3*(x/r13)^2 - 1) + (mu*c2/r23^3)*(3*(x/r23)^2 - 1) ...
+    + 1/norm([x y z]) + (c3/norm([x y z])^3)*(3*(x/norm([x y z]))^2 - 1));
+
+% Transform Hamiltonian to spherical coordinates
+syms r theta phi rdot thetadot phidot
+x = r*sin(theta)*cos(phi);
+y = r*sin(theta)*sin(phi);
+z = r*cos(theta);
+xdot = rdot*sin(theta)*cos(phi) + r*cos(theta)*cos(phi)*thetadot - r*sin(theta)*sin(phi)*phidot;
+ydot = rdot*sin(theta)*sin(phi) - r*cos(theta)*cos(phi)*phidot;
+zdot = rdot*cos(theta) + r*sin(theta)*thetadot;
 
 
 
-%-----------------------------COMPUTATION--------------------------------
+% Define kinetic energy in spherical coordinates
+%T = 0.5*(rdot^2 + r^2*(thetadot^2*sin(theta)^2 + phidot^2))
+
+% Define potential energy in spherical coordinates
+%V_sph = subs(@Potential, [x, y, z], [r*sin(theta)*cos(phi), r*sin(theta)*sin(phi), r*cos(theta)])
+
+% Define Lagrangian in spherical coordinates
+%L = T - V_sph;
+
+% Compute equations of motion
+%eq1 = diff(diff(L, rdot), 't') - diff(L, r);
+%eq2 = diff(diff(L, thetadot), 't') - diff(L, theta);
+%eq3 = diff(diff(L, phidot), 't') - diff(L, phi);
 
 
-% Get user input for semi-axes of the ellipsoid
-a = input('Enter semi-axis length along x: ');
-b = input('Enter semi-axis length along y: ');
-c = input('Enter semi-axis length along z: ');
+% Define a grid of x, y values
+n = 100;
+x = linspace(-9, 9, n);
+y = linspace(-9, 9, n);
+[X, Y] = meshgrid(x, y);
 
-% Define the number of grid points and the ranges for theta and phi
-n = 50;
-theta = linspace(0, pi, n);
-phi = linspace(0, 2*pi, n);
-
-% Compute the grid values for x, y, and z
-x = zeros(n,n);
-y = zeros(n,n);
-z = zeros(n,n);
-
-%To plot an ellipsoid, we need to generate the surface based
-%on the ellipsoid equation, which involves scaling the
-%x, y, and z coordinates by the semi-axes of the ellipsoid.
-for i = 1:n
-    for j = 1:n
-        x(i,j) = a*sin(theta(i))*cos(phi(j));
-        y(i,j) = b*sin(theta(i))*sin(phi(j));
-        z(i,j) = c*cos(theta(i));
-    end
+% Calculate the potential energy at each grid point
+Z = zeros(size(X));
+for i = 1:numel(X)
+    r = sqrt(X(i)^2 + Y(i)^2);
+    z = -1/(r) + (c3/(r^3))*(3*(X(i)/(r))^2 - 1) ...
+        + (((X(i)^2)/2)*( ((3*w^2)/4 - 1)/r13^5 + mu*((3*(2-w)^2)/4 - 1)/r23^5)) ...
+        + ((Y(i)^2)/2)*( (1-mu)*((3*(4*r13^2 - w^2))/4 - 1)/r13^5 + mu*((3*(4*r13^2 - w^2))/4 - 1)/r23^5 ) ...
+        + (X(i)*Y(i)/2)*( (1-mu)*(6*w*sqrt(4*r13^2 - w^2)/4)/r13^5 - (mu*6*(2-w)*sqrt(4*r13^2 - w^2)/4)/r23^5) ...
+        - ((X(i)^2)/2)*((1-mu)*c1/r13^3 + mu/r23^3) + (c1*(1-mu)/r13^3)*(3*(X(i)/r13)^2 - 1)  + (mu*c2/r23^3)*(3*(X(i)/r23)^2 - 1);
+    Z(i) = z;
 end
 
-% Plot the surface
-surf(x, y, z)
-axis equal
+% Plot the potential energy surface
+
+%User input of x,y,z equilibria
+x1Sol =  1.3679168290497543321088196007025;
+x2Sol = -1.3679168290497543321088196007025;
+y1Sol = 8.2073907442596935211297884104174;
+y2Sol = -8.2073907442596935211297884104174;
+z1SOl = 1.8479329667415463613867861266851;
+z2Sol = 1.8479329667415463613867861266851;
+
+figure;
+surf(X, Y, Z);
 alpha(.7);
-xlabel('x')
-ylabel('y')
-zlabel('z')
-title('624-Hektor')
+xlabel('x');
+ylabel('y');
+zlabel('Potential Energy');
+title('Potential Energy Surface');
+hold on
+plot3(x1Sol,0,0,'hexagram', 'MarkerFaceColor', 'red', 'MarkerSize',10)
+hold on
+plot3(x2Sol,0,0,'hexagram', 'MarkerFaceColor', 'red', 'MarkerSize',10)
+hold on
+plot3(0,y1Sol,0,'hexagram', 'MarkerFaceColor', 'blue', 'MarkerSize',10)
+hold on
+plot3(0,y2Sol,0,'hexagram', 'MarkerFaceColor', 'blue', 'MarkerSize',10)
+hold on
+plot3(0,0,z1SOl,'hexagram', 'MarkerFaceColor', 'green', 'MarkerSize',10)
+hold on
+plot3(0,0,z2Sol,'hexagram', 'MarkerFaceColor', 'green', 'MarkerSize',10)
+hold on 
+legend('Surface','x-equilibria','x-equilibria','y-equilibria','y-equilibria','z-equilibria','z-equilibria')
+hold off
